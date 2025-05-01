@@ -1,0 +1,5 @@
+.venv
+downloaded_files
+*.code-workspace
+__pycache__
+data.json
