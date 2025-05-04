@@ -1,42 +1,38 @@
 import re
 
-
-class RuleDispatch:
+class RuleDispatcher:
     def __init__(self):
-        # absorb match table
-        self.urlMatcher = MatchTable()
-        self.addRule = self.urlMatcher.addRule
-        self.matchUrl = self.urlMatcher.matchUrl
+        # string patterns which map to a label, eg "amazon.com/*/gm/* -> amazon_product"
+        self.urlPatterns = []
+        self.extractRules = defaultdict(list)  # rules to execute on each label
 
-        # initialize rules to execute
-        self.selectors = {}
+    # get selectors to run, from url
+    def getSelectorsForUrl(self, url):
+        selectors = []
+        labels = matchUrlPattern(url)
+        for label in labels:
+            selectors.append(self.extractRules[label])
+        return selectors
 
-    def addSelector(self, label, field, qstr, single=True, postprocess=(lambda s: s)):
-        selectors[label] = dict(
-            field=field,
-            qstr=qstr,
-            single=single,
-            postprocess=postprocess
-        )
-
-
-# TODO: support multiple patterns map to one label
-
-# sample regex  \/.+amazon\.ca.+/gm\
-
-
-class MatchTable:
-    def __init__(self):
-        self.matchRules = []
-
-    def addRule(self, label, pattern):
+    # add patterns which map to a label
+    def addUrlPattern(self, pattern, label):
         regex = re.compile(pattern)
 
         self.matches.append([label, regex])
 
-    def matchUrl(url):
-        scs = []
+    # get matching labels from a url
+    def matchUrlPattern(self, url):
+        labels = {}
         for label, regex in self.matchRules:
             if regex.match(url):
-                scs.append(label)
-        return scs
+                labels.append(label)
+        return labels
+
+    # label data with css selector
+    def addExtractRule(self, label, field, selector, single=True, postprocess=(lambda s: s)):
+        self.extractRules[label].extend(dict(
+            field=field,
+            selector=selector,
+            single=single,
+            postprocess=postprocess
+        ))
